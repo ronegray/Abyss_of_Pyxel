@@ -431,7 +431,7 @@ class MenuNameEntry(Menu):
         self.name_window.draw() #入力名はここ
         self.name_window.drawText(self.name_window.x+8,
                                     self.name_window.y+12, self.name_string)
-        px.text(px.width//2-(7*11),px.height-14,"キャンセルボタンで一文字削除",
+        px.text(px.width//2-(7*10),px.height-14,"キャンセルボタンで一文字削除　StartボタンでEDへカーソル移動",
                 px.COLOR_GRAY,G_.SMALLFONT)
         if self.is_msg_window2:
             self.msg_window2.draw() #エラーメッセージ用
@@ -883,7 +883,8 @@ class MenuInventory(Menu):
                                                      self.cursor_address[1] + G_.CHIP_PIXEL + 2,
                                                      self, self.user)
             self.is_submenu = True
-
+        else:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
         return True
 
     def draw_filter(self):
@@ -1325,6 +1326,7 @@ class MenuStoreStorage(MenuInventory):
                         self.cursor_position[1] = 7
             else:
                 self.cursor_position[1] -= 1
+                px.play(3,G_.SNDEFX["miss"],resume=True)
             self.generate_item_list()
             self.menu_items = self.item_list[self.itemlist_index]
             self.change_target_item()
@@ -1380,6 +1382,7 @@ class MenuGetStorage(MenuInventory):
                         self.itemlist_index -= 1 
                         self.cursor_position[1] = 7
             else:
+                px.play(3,G_.SNDEFX["miss"],resume=True)
                 self.cursor_position[1] -= 1
             self.generate_item_list()
             self.menu_items = self.item_list[self.itemlist_index]
@@ -1506,10 +1509,14 @@ class MenuSelectSocketItem(MenuInventory):
 
     def menuInventory(self): # オーバーライド
         if self.selectitem_text in ("何","該"):
+            px.play(3,G_.SNDEFX["miss"],resume=True)
             return True
-        if self.item_list == [["対象アイテムがない"]]: return True
+        if self.item_list == [["対象アイテムがない"]]:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
+            return True
 
         if not self.target_item[1].is_identified:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
             self.di.base.information_window.message_text = ["未鑑定品は加工できない"]
             self.di.base.is_notice = True
             return True
@@ -1680,8 +1687,11 @@ class MenuSelectRune(MenuInventory):
 
     def menuInventory(self):
         if self.selectitem_text in ("何","該"):
+            px.play(3,G_.SNDEFX["miss"],resume=True)
             return True
-        if self.item_list == [["条件に合う秘紋石がない"]]: return True
+        if self.item_list == [["条件に合う秘紋石がない"]]:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
+            return True
 
         target_rune_tuple = self.target_item
         
@@ -1731,6 +1741,7 @@ class MenuIdentify(MenuInventory):
                 self.di.base.information_window.message_text = ["アイテムは既に鑑定済だ"]
                 self.di.base.is_notice = True
         else:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
             return True
 
         if self.di.base.is_notice:
@@ -1851,6 +1862,7 @@ class MenuGetPower(Menu):
 
     def menuGetPower(self):
         if self.item_list == [["得られる力は無い"]]:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
             return
         if self.target_item[1][G_.JsonRune.RANK] == G_.ItemRank.COMMON:
             cost = 60
@@ -2125,6 +2137,9 @@ class MenuEquipSkill(Menu):
         self.cursor_position = [0,0]
 
     def menuEquipSkill(self):
+        if self.item_list == [["覚えたスキルがない"]]:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
+            return True
         self.submenu_instance = MenuSelectSkill(self.di, self.target_item)
         self.is_submenu = True
 
@@ -2385,6 +2400,7 @@ class MenuShopBuy(Menu):
         #決定
         if btn["a"]:
             if self.item_list == ["商品がない"]:
+                px.play(3,G_.SNDEFX["miss"],resume=True)
                 return True
             px.play(3,G_.SNDEFX["pi"], resume=True)
             buyprice = self.target_item.price*(self.target_item.rank+1) if self.target_item.is_identified else (10**(self.parent_menu.func_level*(1-self.parent_menu.func_level*0.05))*self.parent_menu.func_level)
@@ -2465,6 +2481,7 @@ class MenuShopSell(MenuInventory):
         if self.selectitem_text not in ("何","該"):
             self.sellprice = self.di.base.base_mainmenu.submenu_instance.calc_sellprice(self.target_item)
         else:
+            px.play(3,G_.SNDEFX["miss"],resume=True)
             return True
 
         self.command_instance = command.CommandSell(self.di, self.message_window,
