@@ -66,7 +66,7 @@ JP_FONT = ""
 ENCRYPT_KEY = b"Ab2sp5xlOf01"
 DATA_HEADER = b"\x7F\x70\x79\x78"
 APP_NAME = "AbyssOfPyxel"
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.1.1"
 REPOP_SECONDS = 8 #モンスター再出現間隔　単位秒
 SKIPSTAIR_APPEAR = 20 # 複数階飛び階段の出現LEVEL
 BUFFTIME = 30*GAME_FPS #タイマーバフアイテムの効果時間（秒*ゲームFPS)
@@ -200,6 +200,7 @@ class RuneApply(IntEnum):
     SHIELD = 0b001
 
 class RuneList(Enum):
+    DUMMY="0" #ダミー処理用
     ATTACK="900" # 剛力
     ARCANE="901" # 叡智
     HASTE="902" # 神速

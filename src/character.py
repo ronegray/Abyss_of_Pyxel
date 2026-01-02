@@ -247,7 +247,7 @@ class Character:
                 reducedamage = 0.666
             #パーク：四属性耐性
             regist_bonus = [G_.RuneList.RDCFIRE,G_.RuneList.RDCICE,
-                            G_.RuneList.RDCWIND,G_.RuneList.RDCEARTH,9999]
+                            G_.RuneList.RDCWIND,G_.RuneList.RDCEARTH,G_.RuneList.DUMMY]
             rune_effect = target.get_rune_effect(regist_bonus[skill_.model.element_type])
             if rune_effect is not None:
                 reducedamage /= rune_effect[1]
