@@ -2,6 +2,7 @@ import pyxel as px
 import const as G_, common_func as comf
 import menu, item, sound, command
 
+
 class Base:
     '''拠点クラス'''
     STORAGE_DEFAULT_SIZE = 8

@@ -1,6 +1,5 @@
 import pyxel as px
 import const as G_, common_func as comf
-import item
 
 
 class Skill:
@@ -104,7 +103,17 @@ def range_type_S3(x, y, direction):
     return [[px.width//2,px.height//2, px.width,px.height]]
 
 def draw_type_S3(skill):
-    areawidth = G_.WND_MAIN[2]+G_.WND_SIDE[2]
+    if skill.model.caster.move_type == 0:
+        if skill.model.caster.user_scene in (G_.GameState.BOSSBATTLE,
+                                             G_.GameState.LASTBOSS):
+            areawidth = G_.WND_MAIN[2]+G_.WND_SIDE[2]
+        else:
+            areawidth = G_.WND_MAIN[2]
+    else:
+        if skill.model.caster.is_boss:
+            areawidth = G_.WND_MAIN[2]+G_.WND_SIDE[2]
+        else:
+            areawidth = G_.WND_MAIN[2]
     for _ in range(5):
         a1 = px.rndi(-8,8)
         a2 = px.rndi(-8,8)

@@ -58,9 +58,19 @@ class Floor:
             # 配置順序: 階段(上記) -> 宝箱 -> 床置き -> 障害物
             self.rooms[-1].generate_chest()
             self.rooms[-1].generate_dropitem()
-            self.rooms[-1].generate_blocks(min(120,
-                int((G_.TILEMAP_WIDTH+self.di.app.depth_level)*0.5)+10))
-            
+            if self.di.app.depth_level <= 100:
+                self.rooms[-1].generate_blocks(
+                    int((G_.TILEMAP_WIDTH+self.di.app.depth_level)*0.4)+10
+                )
+            else:
+                #v1.2.0追加
+                self.rooms[-1].generate_blocks(min(165,
+                    int(min(100,self.di.app.depth_level*0.2)
+                        +self.di.app.depth_level//15
+                        +px.rndi(1,self.di.app.depth_level//10)
+                        +max(0,50-self.di.app.depth_level//10)
+                        )))
+
             # プレイヤーの初期位置設定（スタート地点）
             if room == (0,0):
                 # プレイヤーもオブジェクトと重ならない安全な場所に配置
@@ -75,6 +85,7 @@ class Floor:
                 foodroom = random_choice(self.rooms_structure)
             [room.generate_food() for room in self.rooms
             if room.pos_room == foodroom]
+
         if self.di.flg.is_first:
             if depth_level == 4:
                  self.rooms[0].generate_mattock()
@@ -82,6 +93,12 @@ class Floor:
                 self.rooms[0].generate_key()
             if depth_level == 6:
                 self.rooms[0].generate_chest(True)
+
+        #v1.2.0追加
+        if depth_level > 100 and px.rndi(0, depth_level) < depth_level//4:
+            mattockroom = random_choice(self.rooms_structure)
+            [room.generate_mattock() for room in self.rooms
+            if room.pos_room == mattockroom]
 
         self.now_room = self.rooms[self.rooms_structure.index(self.now_room_pos)]
         self.now_room.set_tilemap(G_.TilemapIndex.OBSTACLE)
@@ -419,8 +436,7 @@ class Room:
     def generate_chest(self,force:bool=False):
         '''チェスト設定対象のアイテムタイプを元に、アイテムをランダム生成'''
         if px.rndi(1,250) < self.di.app.depth_level/5+(self.di.user.luck)/50 or force:
-            item_type_list = [G_.ItemType.RUNE,G_.ItemType.INSTANT,G_.ItemType.INCREASE,
-                              G_.ItemType.EX]
+            item_type_list = [G_.ItemType.RUNE,G_.ItemType.INSTANT,G_.ItemType.EX]
             self.chest.append(BlueChest(*self.generate_item(item_type_list,G_.ItemStatus.CHEST)))
         elif px.rndi(1,250) < self.di.app.depth_level/10+(self.di.user.luck)/16:
             item_type_list = [G_.ItemType.RUNE]
@@ -431,7 +447,8 @@ class Room:
         rune_effect = self.di.user.get_rune_effect(G_.RuneList.LUCKY)
         bonus = 0 if rune_effect is None else rune_effect[1]
         if px.rndi(1,250) < self.di.app.depth_level+(self.di.user.luck)/50+bonus:
-            item_type_list = [G_.ItemType.TIMER,G_.ItemType.STOCK]
+            item_type_list = [G_.ItemType.INSTANT, G_.ItemType.TIMER, G_.ItemType.STOCK,
+                              G_.ItemType.INCREASE, G_.ItemType.EX]
             address, item_uuid, item_num = self.generate_item(item_type_list,G_.ItemStatus.DROP)
             item.ItemManager.get_item(item_uuid).address = address
             self.drop_items.append([item_uuid,item_num])

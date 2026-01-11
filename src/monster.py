@@ -13,7 +13,10 @@ class MonsterManager:
         self.red_treasure_list = [] #宝箱オブジェクト(出現マップアドレス、設置済フラグ、開封済フラグ、出現アドレス、アイテムID、個数)のリスト
         self.mobgroup_index = 0
 
-        self.monster_list = comf.read_json(f"assets/data/tier{di.dungeon.floor_tier}.json")
+        if depth_level == 1:
+            self.monster_list = comf.read_json(f"assets/data/tier0.json")
+        else:
+            self.monster_list = comf.read_json(f"assets/data/tier{di.dungeon.floor_tier}.json")
         stage_monster_id_list = comf.generate_random_iterater(
                 min(self.monster_list)[0],max(self.monster_list)[0]+1,len(self.monster_list)
             )
@@ -36,7 +39,7 @@ class MonsterManager:
         mobs = self.mobgroup[self.mobgroup_index]
         monsters = []
         try:
-            mobdata = [mobdata for mobdata in self.monster_list if mobdata[0] == mobs[2]][0]
+            mobdata = [targetmob for targetmob in self.monster_list if targetmob[0] == mobs[2]][0]
         except IndexError:
             print(f"list={self.monster_list}\nmobs={mobs}")
 
@@ -214,7 +217,8 @@ class Monster(character.Character):
         #所持金算出
         self.gem = max(px.rndi(1,10), int((tier**2 + self.level//10) * px.rndi(1,11) + self.level))
         #モンスターの場合は算出ではなく指定値
-        self.attack = int(attack * levelup_rate)*adjust_atk+self.level
+        self.attack = int(attack * levelup_rate)*adjust_atk+(
+            (self.level**1.3) if self.level >= 1 else 0)
         self.defend = 0 if self.di.flg.is_first else int(defend * levelup_rate)*adjust_def+self.level
         self.arcane = int((arcane if self.level<=100 else 1000) * levelup_rate +self.level/10)
         #エリート補正
@@ -345,7 +349,7 @@ class Monster(character.Character):
                             self.di.app.is_emergency = True
                         active_skill.hitlist.append(ref_user)
                         if damage > 0:
-                            self.di.message_manager.add_message(f"被害 {damage}", 8)
+                            self.di.message_manager.add_message(f"{active_skill.model.name} {damage}", 8)
                         elif damage == 0:
                             self.di.message_manager.add_message(f"レジスト成功！", 3)
                         if active_skill.model.id in ("704","705","706","707"): #魔法が命中したらインスタンスは消える
@@ -526,11 +530,11 @@ class Monster(character.Character):
             px.blt(self.address[0]+4, self.address[1]+4, G_.IMGIDX["CHIP"],
                     72,232, 8,8, colkey=0)
 
-        # if G_.IS_DEBUG:
-        #     px.text(self.address[0]-8,self.address[1]-10,f"HP:{self.hp}",19)
-        #     px.text(self.address[0]-8,self.address[1]-4,f"AT:{self.attack}",24)
-        #     px.text(self.address[0]-8,self.address[1]+2,f"DF:{self.defend}",19)
-        #     px.text(self.address[0]-8,self.address[1]+8,f"AR:{self.arcane}",24)
+        if G_.IS_DEBUG:
+            px.text(self.address[0]-8,self.address[1]-10,f"HP:{self.hp}",19)
+            px.text(self.address[0]-8,self.address[1]-4,f"AT:{self.attack}",24)
+            px.text(self.address[0]-8,self.address[1]+2,f"DF:{self.defend}",19)
+            px.text(self.address[0]-8,self.address[1]+8,f"AR:{self.arcane}",24)
 
 
 class BossMonster(Monster):

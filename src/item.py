@@ -4,6 +4,7 @@ from random import choice as random_choice
 import const as G_
 import common_func as comf
 
+
 def notice_item(item_info, flg):
     notice_message = ""
     category = G_.ItemType.get_category(item_info.type_id)
@@ -113,13 +114,22 @@ class TreasureBox:
         self.rate_open = 0
         self.is_placed = False
         self.is_opened = False
-        self.DifficultClass = depth_level**2*0.05+50
+        self.DifficultClass = depth_level**1.9775*0.05+50
     
     def challenge_open(self, depth_level, dexterity):
         px.play(3,G_.SNDEFX["unlock"], resume=True)
-        if px.rndf(0, self.DifficultClass) <= dexterity:
-            openbonus = px.rndi(1,50-depth_level)
-            self.rate_open += min(40,max(1,(dexterity/16 + openbonus)))
+        if px.rndf(0+dexterity/6, self.DifficultClass) <= dexterity:
+            # 1. 成功判定をパスした後のボーナス計算
+            base_bonus = px.rndi(1, 50 - depth_level)
+            extra_bonus = 0 if depth_level <= 50 else px.rndi(0, depth_level // 2)
+            openbonus = base_bonus + extra_bonus
+            # 2. 進捗への適用
+            # dexterity/16 と合わせて最低でも 1 は進むように max で囲む
+            increment = min(40, max(1, (dexterity / 16 + openbonus)))
+            self.rate_open = min(100.01, self.rate_open + increment)
+        else:
+            self.rate_open += 0.01
+
         if self.rate_open >= 100:
             self.is_opened = True
             return True
@@ -128,7 +138,7 @@ class TreasureBox:
     def draw(self):
         if self.is_placed and self.is_opened is False:
             px.blt(self.address[0]-8,self.address[1]-8, 0,
-                   G_.ImageAddress.REDCHEST[0]+16*(self.rate_open//45),
+                   G_.ImageAddress.REDCHEST[0]+16*(self.rate_open//40),
                    *G_.ImageAddress.REDCHEST[1:], colkey=0)
 
 
@@ -235,7 +245,10 @@ class ItemManager:
         #ランクの決定
         elitebonus = 1 if is_elite else 0 #エリートモンスタードロップのボーナス
         perkbonus = 2 if is_divine else 0 #赤宝箱レアUPパークのボーナス※重複しない
-        maxrank = min(G_.ItemRank.ANCIENT, depth_level//10+1 +elitebonus +perkbonus)
+        randombonus = 2 if depth_level < 10 else (
+            1 if depth_level > 100 else (2 if px.rndi(2,12) >= 10 else 1)
+        )
+        maxrank = min(G_.ItemRank.ANCIENT, depth_level//10+randombonus +elitebonus +perkbonus)
         rank = min(G_.ItemRank.ANCIENT,
                    random_choice([i for i,num in enumerate(range(maxrank+1, 0, -1))
                                   for _ in range(num*num)][maxrank*2:]) +elitebonus +perkbonus)

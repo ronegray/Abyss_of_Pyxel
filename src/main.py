@@ -11,7 +11,7 @@ px.text = shadowed_text
 
 import const as G_
 import common_func as comf, drawevent as evt
-import base, character, dungeon, sound, message, item, menu, monster, command#, skill
+import base, character, dungeon, sound, message, item, menu, monster, command
 
 
 class InstanceReferenceManager:
@@ -409,7 +409,7 @@ class App():
                     damage = self.user.proc_attack_skill(skill, mob)
                     skill.hitlist.append(mob)
                     if damage > 0:
-                        self.message_manager.add_message(f"呪文！ {damage}", 10)
+                        self.message_manager.add_message(f"{skill.model.name}！ {damage}", 10)
                     elif damage <= 0:
                         self.message_manager.add_message(f"抵抗された…", 12)
                     if not mob.is_dead and mob.hp <= 0:
@@ -684,13 +684,17 @@ class App():
                         self.user.hp = self.user.maxhp * rune_effect[1]
                     self.user.prev_hp = self.user.hp
 
+                    #v1.2.0追加
+                    if self.depth_level > 100:
+                        # self.user.mattock = self.depth_level//100 + (self.depth_level-100)//50
+                        self.user.mattock = 1 + (self.depth_level-100)//50
+
                     if self.game_state != G_.GameState.PREPARE_GAME:
                         return
 
                     #開始直後にいきなり死なない（ボス戦遷移時は発動しない）
                     if G_.IS_DEBUG is False:
                         self.user.timer_invincible = G_.GAME_FPS*(self.depth_level//10+1)
-
                     px.images[2].cls(0)
                     px.images[2].load(0, 0, f"assets/image/tier{self.di.dungeon.floor_tier}.bmp")
                     self.game_state = self.user.user_scene = G_.GameState.STARTFLOOR
@@ -722,7 +726,7 @@ class App():
             #ステージ開始
                 case G_.GameState.STARTFLOOR:
                     if self.flavor_no is None:
-                        self.flavor_no = px.rndi(0,50)
+                        self.flavor_no = px.rndi(0,99)
                     self.dungeon.now_room_pos = 0, 0
                     self.dungeon.monsters.set_mobgroup_index(
                             self.dungeon.now_room_pos)
@@ -1047,11 +1051,11 @@ class App():
         self.background_drawer()
         #HPウインドウ
         self.user_hp_window.draw()
-        self.user_hp_window.drawText(self.user_hp_window.x+8, self.user_hp_window.y+8,
-                                        [self.user.name, f"{int(self.user.hp):>13,}"])
+        self.user_hp_window.drawText(self.user_hp_window.x+16, self.user_hp_window.y+8,
+                                        [self.user.name, f"{int(self.user.hp):>15,}"])
         self.boss_hp_window.draw()
-        self.boss_hp_window.drawText(self.boss_hp_window.x+8, self.boss_hp_window.y+8,
-                                        [self.boss.name,f"{int(self.boss.hp):>13,}"])
+        self.boss_hp_window.drawText(self.boss_hp_window.x+16, self.boss_hp_window.y+8,
+                                        [self.boss.name,f"{int(self.boss.hp):>15,}"])
         self.user.draw()
         if self.boss.is_gone is False:
             self.boss.draw()
@@ -1295,6 +1299,9 @@ class App():
                             case 40:
                                 hint_message1 = "迷宮は一つ形に留まらず、訪れる度に姿を変える"
                                 hint_message2 = "道具無しには乗り越えられない姿を見せる事もある"
+                            case 41:
+                                hint_message1 = "頑健な肉体には魔法も通じにくい"
+                                hint_message2 = "健康な肉体には健全な精神が宿るというもの"
                             case 99:
                                 hint_message1 = ""
                                 hint_message2 = ""
