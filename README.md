@@ -37,5 +37,9 @@
     * フルスクリーン表示切替    <br>
 <br>
 
+## **セーブデータ保存パス**    <br>
+%USERPROFILE%\.pyxel\moq\abyssofpyxel
+<br><br>
+
 Pyxel (c) 2018-2025 Takashi Kitao <br>
 8bit BGM generator (c) @frenchbread1222 <br>
