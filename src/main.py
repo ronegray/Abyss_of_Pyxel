@@ -35,6 +35,8 @@ class GameFlags:
         self.is_newgame = False
         self.is_ritual = False
         self.is_skipOpening = None
+        #v1.5.0 add
+        self.is_clearbonus = False
 
         self.is_spawner = False
         self.is_elite = False
@@ -71,6 +73,12 @@ class GameFlags:
         #消費アイテム
         id_list = [id_ for id_ in item.ItemManager.get_item_id_by_category(G_.ItemType.CATEGORY_CONSUME)]
         self.is_consume = {str(id_):False for id_ in id_list}
+
+    # v1.5.0
+    def fix_flags(self):
+        '''古いセーブデータに存在しない属性を補完する'''
+        if not hasattr(self, "is_clearbonus"):
+            self.is_clearbonus = False
 
     def clear_all_flags(self):
         for name, value in vars(self).items():
@@ -781,15 +789,22 @@ class App():
                     #階層移動準備（100Fのボスは必ず一度は倒さないと先に進めない）
                     if self.dungeon.is_nextlevel:
                         self.next_level = self.dungeon.now_room.stair.next_level
-                        if (self.di.base.reached_max_level+self.next_level >= 100 and
+                        if (self.depth_level+self.next_level >= 100 and
                             self.next_level > 1 and
-                            self.di.base.reached_max_level < 100
+                            self.di.base.reached_max_level <= 100
                             ):
                                 self.depth_level = 99
                                 self.next_level = 0
-                        if (self.di.base.reached_max_level+self.next_level >= 1000 and
-                            self.next_level > 1
-                            ):
+                        # v1.5.0
+                        elif self.depth_level == 999:
+                            self.depth_level = 1000
+                            self.next_level = 0
+                        elif self.depth_level+self.next_level >= 1000:
+                            if (self.next_level > 1 and 
+                                self.di.base.reached_max_level < 1000):
+                                self.depth_level = 999
+                                self.next_level = 0
+                            else:
                                 self.depth_level = 1000
                                 self.next_level = 0
                         self.game_state = self.user.user_scene = G_.GameState.PREPARE_NEXTFLOOR
@@ -884,7 +899,23 @@ class App():
                                 self.di.base.defeated_boss = 5
                                 self.user.score += self.depth_level**2*50
                                 self.di.base.reached_max_level = self.depth_level = 0
-
+                        # v1.5.0
+                        if self.depth_level == 1000 and self.di.flg.is_clearbonus is False:
+                            item.ItemManager.create_item("969",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("969",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("969",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("921",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("921",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("921",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("957",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("957",G_.ItemStatus.STORAGE)
+                            item.ItemManager.create_item("957",G_.ItemStatus.STORAGE)
+                            self.di.flg.is_clearbonus = True
+                            #クリア時点データの退避用セーブ
+                            cmd = command.CommandSave(0,0,self,1,False)
+                            cmd.set_max_datano()
+                            self.user.reset_state()
+                            cmd.exec()
                         if self.di.flg.is_first or self.depth_level==1000:
                             px.stop()
                             px.play(3, G_.SNDEFX["special"])
@@ -1377,7 +1408,12 @@ class App():
                     if self.di.flg.is_first:
                         self.is_nextstage = evt.interlude_first(self.message_window, self.eventstep)
                     elif self.boss.is_gone:
-                        self.is_nextstage = evt.interlude_silence(self.message_window, self.eventstep)
+                        # v1.5.0
+                        if self.depth_level == 1000:
+                            skipstep = 3 if self.di.flg.is_clearbonus else 2
+                            self.is_nextstage = evt.interlude_end(self.message_window, self.eventstep+skipstep)
+                        else:
+                            self.is_nextstage = evt.interlude_silence(self.message_window, self.eventstep)
                         px.blt(px.width//2-16,px.height-16,G_.IMGIDX["CHIP"],
                                *G_.ImageAddress.DIAGRAM[:2],
                                (1 if px.frame_count/G_.GAME_FPS%2==0 else -1)*G_.ImageAddress.DIAGRAM[2],

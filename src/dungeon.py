@@ -171,8 +171,16 @@ class Floor:
             if new_block not in dungeon_rooms:
                 dungeon_rooms.append(new_block)
         #階段は事後生成のRoomに割り付ける為、ここでは対象の部屋アドレスのみを定義
-        self.stairs = [Stair(new_block)] #最後に追加した部屋が次のフロアへの階段
-        if self.depth_level > G_.SKIPSTAIR_APPEAR\
+        # v1.5.0
+        if G_.IS_DEBUG and len(dungeon_rooms)>1:
+            self.stairs = [Stair(dungeon_rooms[1])] #スタート地点の隣の部屋が次のフロアへの階段
+        else:
+            self.stairs = [Stair(new_block)] #最後に追加した部屋が次のフロアへの階段
+        # v1.5.0
+        if G_.IS_DEBUG or self.di.base.reached_max_level == 1000:
+            if len(dungeon_rooms) > 1:
+                self.stairs.append(Stair(dungeon_rooms[0], True)) #1000F到達ボーナス
+        elif self.depth_level > G_.SKIPSTAIR_APPEAR\
             and px.rndi(0,1024) < self.depth_level: #指定以上のレベルではスキップ用階段を設置
             candidate_rooms = [r for r in dungeon_rooms if r != new_block]
             if candidate_rooms:

@@ -2509,8 +2509,9 @@ class MenuBaseBackdoor(Menu):
         super().__init__(x, y, [3, 1], dummy_items, menutext_length=3, menu_type=menu_type)
         
         # 状態管理
-        self.max_assignable_level = min(self.di.base.reached_max_level,
-                                        self.di.base.defeated_boss+self.func_level)
+        # v1.5.0
+        self.max_assignable_level = min(999,min(self.di.base.reached_max_level,
+                                        self.di.base.defeated_boss+self.func_level))
         self.result_value = max(1, min(999, max(1,self.max_assignable_level))) # 1〜99に制限
         self.is_finished = False # 呼び出し元に返すためのフラグ
 

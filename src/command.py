@@ -362,7 +362,7 @@ class CommandStatus(Commands):
                 f"盾　　　：{G_.ITEM_TYPE_NAME[self.user.shield.type_id]}）{equip_name[2]} 攻撃遅延度 {self.user.shield.rate_attackspeed:>1.1f}",
             ]
             self.data3 = [
-                f"習熟度　：杖){self.user.mastery["wand"]-100:06.2f}% 剣){self.user.mastery["sword"]-100:06.2f}% 槍){self.user.mastery["spear"]-100:06.2f}% 斧){self.user.mastery["axe"]-100:06.2f}%",
+                f"習熟度　：杖){int(self.user.mastery["wand"]-100):06.2f}% 剣){int(self.user.mastery["sword"]-100):06.2f}% 槍){int(self.user.mastery["spear"]-100):06.2f}% 斧){int(self.user.mastery["axe"]-100):06.2f}%",
                 ]
             if len(self.user.rune_effects):
                 runelist = ""
@@ -529,6 +529,13 @@ class CommandSave(Commands):
         self.GameData = {}
         self.is_quit = is_quit
 
+    # v1.5.0
+    def set_max_datano(self):
+        path = Path(px.user_data_dir("moq",G_.APP_NAME))
+        for i,_ in enumerate(path.glob("savedata*.bin")):
+            pass
+        self.data_no = i + 1
+
     def exec(self):
         if not self.is_finished:
             self.GameData["HEADER"] = G_.DATA_HEADER #不正データチェック用
@@ -538,8 +545,8 @@ class CommandSave(Commands):
             self.GameData["base"] = self.app.di.base
             self.GameData["user"] = self.app.user
 
-            #Pickle時エラーチェック用
-            #import test
+            # #Pickle時エラーチェック用
+            # import test_image
             # print("Checking for leaks...")
             # leak_path = test_image.find_image_leak(self.GameData)
             # if leak_path:
@@ -611,6 +618,7 @@ class CommandLoad(Commands):
             # 3. 【登録フェーズ】インスタンスをDIコンテナ(self.app.di)にすべてセットする
             # ※まだ resume は呼びません。互いに参照できるように先に配置だけ済ませます。
             self.app.di.flg = self.GameData["flag"]
+            self.app.di.flg.fix_flags()
             self.app.user = self.GameData["user"]
             self.app.di.user = self.app.user
             self.app.di.base = self.GameData["base"]

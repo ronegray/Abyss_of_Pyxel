@@ -32,16 +32,16 @@ def anger_boss(counter):
     match counter:
         case 0:
             px.stop()
-            px.play(1, [G_.SNDEFX["tdr2"]], loop=False)
+            px.play(0, [G_.SNDEFX["tdr2"]], loop=False, resume=False)
             return False
         case 60:
-            while px.play_pos(1) is not None:
+            while px.play_pos(0) is not None:
                 pass
-            px.play(1, [G_.SNDEFX["tdr1"]], loop=False)
+            px.play(0, [G_.SNDEFX["tdr1"]], loop=False, resume=False)
             return False
         case _:
             if counter > 120:
-                while px.play_pos(1) is not None:
+                while px.play_pos(0) is not None:
                     pass
                 return True
             else:
@@ -292,19 +292,37 @@ def interlude_end(window, step):
                                    "魔法陣へと足を踏み入れた",
                                    ""]
         case 2:
+            # v1.5.0
+            window.message_text = ["このゲームのステージはここが最後となります",
+                                   "",
+                                   "完全踏破の記念と致しまして",
+                                   "ささやかながら報酬をお届けします",
+                                   "",
+                                   "・階層開始部屋にワープ階段",
+                                   "階層開始時の部屋に必ず配置されます",
+                                   "※LEVEL1を除く",
+                                   "",
+                                   "・高級秘紋石x3",
+                                   "倉庫をご確認下さい",
+                                   ""]
+        case 3:
             window.message_text = ["",
                                    "ここまで遊んで下さってありがとうございます",
                                    "",
-                                   "このゲームのステージはここが最後でした",
+                                   "バランス調整しないまま無限迷宮のイメージで",
+                                   "実装しましたが、まさかクリアされてしまうとは…",
                                    "",
-                                   "通常のプレイでは到底辿り着けない想定なので",
+                                   "ここまでお付き合い下さり本当に感謝します",
                                    "",
-                                   "このメッセージをご覧になった方は",
-                                   "",
-                                   "この画面のスクショを開発者までお送り下さい",
-                                   "",
-                                   "何かの景品を用意しておこうと思います"]
-        case 3:
+                                   "もしお望みであれば、の話になりますが、",
+                                   "クリア後の拠点スクリーンショットを送付頂ければ",
+                                   "お名前を掲載させて頂きたいと考えています"]
+
+        case 4:
+            window.message_text = ["歴代クリアプレイヤー ※敬称略",
+                                   f"#01 2025/01/17 {134052359:>13,}pts けい",
+                                   ]
+        case 5:
             return True
     return False
 
